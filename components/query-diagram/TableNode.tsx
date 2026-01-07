@@ -4,12 +4,14 @@ import { cn } from '@/lib/utils';
 import { ColumnRole, type DiagramNodeData } from '@/types';
 
 const columnTypeStyles: Record<ColumnRole, string> = {
-  [ColumnRole.SELECTED]: 'bg-blue-50 text-blue-700 border-blue-200',
-  [ColumnRole.JOIN]: 'bg-purple-50 text-purple-700 border-purple-200',
-  [ColumnRole.FILTER]: 'bg-amber-50 text-amber-700 border-amber-200',
-  [ColumnRole.MODIFIED]: 'bg-green-50 text-green-700 border-green-200',
+  [ColumnRole.SELECTED]: 'bg-green-50 text-green-700 border-green-200',
+  [ColumnRole.JOIN]: 'bg-blue-50 text-blue-700 border-blue-200',
+  [ColumnRole.FILTER]: 'bg-orange-50 text-orange-700 border-orange-200',
+  [ColumnRole.MODIFIED]: 'bg-red-50 text-red-700 border-red-200',
   [ColumnRole.DEFAULT]: 'bg-gray-50 text-gray-600 border-gray-200',
 };
+
+const invalidColumnStyle = 'bg-red-100 text-red-800 border-red-400';
 
 const columnTypeIcons: Record<ColumnRole, string> = {
   [ColumnRole.SELECTED]: '→',
@@ -63,27 +65,40 @@ export function TableNode({ data }: { data: DiagramNodeData }) {
       <div className="max-h-[400px] overflow-y-auto">
         {columns.length > 0 ? (
           <div className="divide-y divide-gray-100">
-            {columns.map((column, index) => (
-              <div
-                key={`${column.name}-${index}`}
-                className={cn(
-                  'flex items-center gap-2 border-l-4 px-4 py-2.5 transition-colors hover:bg-gray-50',
-                  columnTypeStyles[column.role]
-                )}
-              >
-                <span className="text-xs" title={column.role}>
-                  {columnTypeIcons[column.role]}
-                </span>
-                <span className="font-mono text-sm font-medium">
-                  {column.name}
-                </span>
-                {column.dataType && (
-                  <span className="ml-auto text-xs text-gray-500">
-                    {column.dataType}
+            {columns.map((column, index) => {
+              const isInvalid = column.isValid === false;
+              return (
+                <div
+                  key={`${column.name}-${index}`}
+                  className={cn(
+                    'flex items-center gap-2 border-l-4 px-4 py-2.5 transition-colors hover:bg-gray-50',
+                    isInvalid ? invalidColumnStyle : columnTypeStyles[column.role]
+                  )}
+                  title={isInvalid ? `Column "${column.name}" not found in schema` : column.role}
+                >
+                  {isInvalid ? (
+                    <span className="text-xs text-red-600" title="Invalid column">
+                      ⚠
+                    </span>
+                  ) : (
+                    <span className="text-xs" title={column.role}>
+                      {columnTypeIcons[column.role]}
+                    </span>
+                  )}
+                  <span className={cn(
+                    'font-mono text-sm font-medium',
+                    isInvalid && 'line-through'
+                  )}>
+                    {column.name}
                   </span>
-                )}
-              </div>
-            ))}
+                  {column.dataType && (
+                    <span className="ml-auto text-xs text-gray-500">
+                      {column.dataType}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="px-4 py-6 text-center text-sm text-gray-400">

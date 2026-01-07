@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseSQL } from '@/lib/sql-parser';
 import type { ParseRequest, ParseResponse } from '@/types';
+import type { Schema } from '@/lib/schema-parser';
 
 /**
  * POST /api/parse
@@ -20,8 +21,8 @@ import type { ParseRequest, ParseResponse } from '@/types';
 export async function POST(request: NextRequest) {
   try {
     // Parse request body
-    const body = (await request.json()) as ParseRequest;
-    const { sql } = body;
+    const body = (await request.json()) as ParseRequest & { schema?: Schema };
+    const { sql, schema } = body;
 
     // Validate input
     if (!sql) {
@@ -54,8 +55,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse the SQL query
-    const parsedQuery = parseSQL(sql);
+    // Parse the SQL query (with optional schema validation)
+    const parsedQuery = parseSQL(sql, schema);
 
     // Check if parsing produced any warnings (non-fatal errors)
     const warnings: string[] = [];

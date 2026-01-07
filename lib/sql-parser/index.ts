@@ -13,6 +13,7 @@ import type {
   ParsedJoin,
 } from '@/types';
 import { QueryType, JoinType } from '@/types';
+import type { Schema } from '@/lib/schema-parser';
 
 // Type definitions for AST nodes from pgsql-ast-parser
 // These are partial types to satisfy ESLint - the library doesn't export full types
@@ -43,6 +44,10 @@ type DeleteStatement = Statement & {
 type CTEStatement = Statement & {
   bind?: CTEItem[];
   in?: SelectStatement;
+};
+type UnionStatement = Statement & {
+  left?: SelectStatement | UnionStatement;
+  right?: SelectStatement | UnionStatement;
 };
 type FromItem = ASTNode & {
   type?: string;
@@ -93,10 +98,11 @@ type WhenItem = ASTNode & {
  * Parse a SQL query string and extract structured information
  *
  * @param sql - The SQL query string to parse
+ * @param schema - Optional database schema for column validation
  * @returns Structured query data including tables, columns, joins, and conditions
  * @throws Error if SQL is invalid or cannot be parsed
  */
-export function parseSQL(sql: string): ParsedQuery {
+export function parseSQL(sql: string, schema?: Schema): ParsedQuery {
   if (!sql || sql.trim().length === 0) {
     throw new Error('SQL query cannot be empty');
   }
@@ -109,7 +115,14 @@ export function parseSQL(sql: string): ParsedQuery {
     }
 
     // Cast to our custom Statement type
-    return processStatements(ast as Statement[], sql);
+    const result = processStatements(ast as Statement[], sql);
+
+    // If schema is provided, validate columns and add data types
+    if (schema) {
+      validateColumnsAgainstSchema(result, schema);
+    }
+
+    return result;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown parsing error';
     throw new Error(`Failed to parse SQL: ${message}`);
@@ -209,6 +222,11 @@ function processStatements(statements: Statement[], rawSql: string): ParsedQuery
       case 'with':
         queryType = QueryType.CTE;
         extractFromCTE(stmt, ctes, tables, columns, joins, whereConditions, rawSql);
+        break;
+      case 'union':
+      case 'union all':
+        queryType = QueryType.SELECT;
+        extractFromUnion(stmt as UnionStatement, tables, columns, joins, whereConditions, subqueries, rawSql);
         break;
     }
   }
@@ -415,6 +433,38 @@ function extractFromCTE(
   // Process the main query after WITH
   if (stmt.in) {
     extractFromSelect(stmt.in, tables, columns, joins, whereConditions, [], rawSql);
+  }
+}
+
+/**
+ * Extract information from UNION statement
+ * Recursively processes left and right sides of UNION
+ */
+function extractFromUnion(
+  stmt: UnionStatement,
+  tables: ParsedTable[],
+  columns: ParsedColumn[],
+  joins: ParsedJoin[],
+  whereConditions: string[],
+  subqueries: ParsedQuery[],
+  rawSql: string
+): void {
+  // Process left side
+  if (stmt.left) {
+    if (stmt.left.type === 'select') {
+      extractFromSelect(stmt.left, tables, columns, joins, whereConditions, subqueries, rawSql);
+    } else if (stmt.left.type === 'union' || stmt.left.type === 'union all') {
+      extractFromUnion(stmt.left as UnionStatement, tables, columns, joins, whereConditions, subqueries, rawSql);
+    }
+  }
+
+  // Process right side
+  if (stmt.right) {
+    if (stmt.right.type === 'select') {
+      extractFromSelect(stmt.right, tables, columns, joins, whereConditions, subqueries, rawSql);
+    } else if (stmt.right.type === 'union' || stmt.right.type === 'union all') {
+      extractFromUnion(stmt.right as UnionStatement, tables, columns, joins, whereConditions, subqueries, rawSql);
+    }
   }
 }
 
@@ -848,4 +898,101 @@ function deduplicateColumns(columns: ParsedColumn[]): ParsedColumn[] {
   }
 
   return Array.from(map.values());
+}
+
+// ==================== Schema Validation Functions ====================
+
+/**
+ * Validate columns against the provided schema and add data types
+ */
+function validateColumnsAgainstSchema(result: ParsedQuery, schema: Schema): void {
+  // Build a mapping of table aliases to real table names
+  const aliasToTable = new Map<string, string>();
+  for (const table of result.tables) {
+    const realName = table.name.toLowerCase();
+    if (table.alias) {
+      aliasToTable.set(table.alias.toLowerCase(), realName);
+    }
+    aliasToTable.set(realName, realName);
+  }
+
+  // Validate each column
+  for (const column of result.columns) {
+    // Skip columns without table context (e.g., literals, expressions)
+    if (!column.table) {
+      // Try to infer table from schema if there's only one match
+      const matchingTables = findTablesWithColumn(schema, result.tables, column.name);
+      if (matchingTables.length === 1) {
+        column.table = matchingTables[0];
+        const dataType = lookupColumnInSchema(schema, matchingTables[0], column.name);
+        if (dataType) {
+          column.dataType = dataType;
+          column.isValid = true;
+        }
+      } else if (matchingTables.length > 1) {
+        // Ambiguous column - mark as valid if it exists in any table
+        column.isValid = true;
+      } else {
+        // Column not found in any known table
+        column.isValid = false;
+      }
+      continue;
+    }
+
+    // Resolve alias to real table name
+    const tableName = aliasToTable.get(column.table.toLowerCase()) || column.table.toLowerCase();
+
+    // Check if table exists in schema
+    const tableSchema = schema.tables[tableName];
+    if (!tableSchema) {
+      // Table not in schema - can't validate, leave isValid undefined
+      continue;
+    }
+
+    // Check if column exists in table
+    const columnLower = column.name.toLowerCase();
+    const dataType = tableSchema[columnLower];
+
+    if (dataType) {
+      column.isValid = true;
+      column.dataType = dataType;
+    } else {
+      column.isValid = false;
+    }
+  }
+}
+
+/**
+ * Find all tables that contain a column with the given name
+ */
+function findTablesWithColumn(
+  schema: Schema,
+  queryTables: ParsedTable[],
+  columnName: string
+): string[] {
+  const matches: string[] = [];
+  const columnLower = columnName.toLowerCase();
+
+  for (const table of queryTables) {
+    const tableName = table.name.toLowerCase();
+    const tableSchema = schema.tables[tableName];
+    if (tableSchema && columnLower in tableSchema) {
+      matches.push(table.name);
+    }
+  }
+
+  return matches;
+}
+
+/**
+ * Look up a column's data type in the schema
+ */
+function lookupColumnInSchema(
+  schema: Schema,
+  tableName: string,
+  columnName: string
+): string | undefined {
+  const tableSchema = schema.tables[tableName.toLowerCase()];
+  if (!tableSchema) return undefined;
+  return tableSchema[columnName.toLowerCase()];
 }

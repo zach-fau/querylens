@@ -195,6 +195,8 @@ function getColumnsForTable(
         columns.push({
           name: col.name,
           role,
+          dataType: col.dataType,
+          isValid: col.isValid,
         });
       }
     }

@@ -86,6 +86,10 @@ export interface ParsedColumn {
   isFilterColumn: boolean;
   /** Column being modified (INSERT/UPDATE) */
   isModified: boolean;
+  /** Whether the column is valid according to schema (undefined if no schema provided) */
+  isValid?: boolean;
+  /** Data type from schema (if available) */
+  dataType?: string;
 }
 
 /**
@@ -229,6 +233,8 @@ export interface DiagramColumn {
   isPrimaryKey?: boolean;
   /** Is this a foreign key */
   isForeignKey?: boolean;
+  /** Whether the column is valid according to schema (undefined if no schema provided) */
+  isValid?: boolean;
 }
 
 /**
