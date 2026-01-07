@@ -27,7 +27,7 @@ QueryLens is a **visual SQL query path analyzer** with AI explanations. Users pa
 
 ## Current State
 
-**Lint**: ❌ (19 errors) | **TypeScript**: ✅ | **Tests**: ✅ (39 passing)
+**Lint**: ✅ | **TypeScript**: ✅ | **Tests**: ✅ (52 passing) | **Build**: ✅
 
 ### What's Next
 
