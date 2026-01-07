@@ -1,65 +1,36 @@
 # QueryLens
 
-**Visual SQL query path analyzer with AI plain-English explanations**
+**Visual SQL Query Path Analyzer with AI Explanations**
 
-<p align="center">
-  <img src="docs/demo.gif" alt="QueryLens Demo" width="800" />
-</p>
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/zach-fau/querylens/actions)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
+[![Tests](https://img.shields.io/badge/tests-193%20passing-brightgreen)](https://github.com/zach-fau/querylens)
 
-> Paste any PostgreSQL query and instantly see which tables and columns it touches, join relationships, and data flow in an interactive diagram. Plus, get AI-powered explanations of what your query does in plain English.
+> Paste SQL, see how data flows through your tables, get AI-powered explanations.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
-[![React Flow](https://img.shields.io/badge/React%20Flow-12-ff0071)](https://reactflow.dev/)
+<!-- TODO: Add screenshot or demo GIF here -->
+<!-- ![QueryLens Demo](./docs/demo.gif) -->
 
-## The Problem
-
-Developers frequently inherit complex databases with 50+ tables and encounter SQL queries they didn't write. Understanding these queries requires:
-
-- **Mental mapping** - Tracing which tables are involved
-- **Join comprehension** - Understanding how data flows between tables
-- **Column tracking** - Identifying which columns are selected, filtered, or transformed
-- **Documentation hunting** - Finding schema documentation (often outdated)
-
-This cognitive load wastes hours per week and causes bugs when developers modify queries they don't fully understand.
-
-## The Solution
-
-QueryLens provides:
-
-1. **Visual Query Path Analysis** - See exactly which tables and columns your query touches
-2. **Interactive Diagrams** - Explore relationships with pan, zoom, and click interactions
-3. **Color-Coded Columns** - Instantly identify selected, joined, filtered, and modified columns
-4. **AI Explanations** - Get plain-English descriptions of what your query does (optional)
+---
 
 ## Features
 
-### Core Features
+- :mag: **Visual SQL Query Path Analysis** - See your query as an interactive diagram
+- :bar_chart: **Interactive React Flow Diagrams** - Pan, zoom, and explore table relationships
+- :art: **Color-Coded Columns by Role** - Instantly identify selected, join, filter, and modified columns
+- :robot: **AI-Powered Plain-English Explanations** - Understand complex queries without reading SQL
+- :memo: **Monaco Editor with Syntax Highlighting** - Professional-grade SQL editing experience
+- :sparkles: **Auto-Formatting** - Clean up messy SQL with one click
+- :file_folder: **Schema Validation** - Upload DDL to validate column references and data types
+- :crescent_moon: **Dark Mode Support** - Easy on the eyes, day or night
+- :iphone: **Responsive Design** - Works on desktop, tablet, and mobile
+- :keyboard: **Keyboard Shortcuts** - Power user productivity
 
-- **SQL Parsing** - Supports SELECT, INSERT, UPDATE, DELETE with CTEs and subqueries
-- **Interactive Diagrams** - Built with React Flow for smooth, responsive visualizations
-- **Column Role Highlighting**:
-  - 🟢 Green: Selected columns
-  - 🔵 Blue: Join columns
-  - 🟠 Orange: Filter conditions (WHERE)
-  - 🔴 Red: Modified columns (INSERT/UPDATE)
-
-### AI Features (Optional)
-
-- **Plain-English Explanations** - "This query fetches all orders from the last 30 days..."
-- **Join Reasoning** - Understand why each table is joined
-- **Potential Issues** - Spot common patterns like N+1 queries
+---
 
 ## Quick Start
-
-### Prerequisites
-
-- Node.js 18+
-- npm or yarn
-- OpenAI API key (optional, for AI explanations)
-
-### Installation
 
 ```bash
 # Clone the repository
@@ -69,11 +40,9 @@ cd querylens
 # Install dependencies
 npm install
 
-# Copy environment variables
+# Set up environment variables
 cp .env.example .env.local
-
-# Add your OpenAI API key (optional)
-# Edit .env.local and set OPENAI_API_KEY
+# Edit .env.local and add your OpenAI API key (optional, for AI features)
 
 # Start development server
 npm run dev
@@ -81,12 +50,225 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Usage
+---
 
-1. **Paste your SQL** in the editor
-2. **View the diagram** showing tables and relationships
-3. **Click nodes** to see column details
-4. **Toggle AI** for plain-English explanation (requires API key)
+## Usage Guide
+
+### 1. Enter Your SQL Query
+
+Paste your PostgreSQL query into the Monaco editor on the left side. The editor provides:
+- Syntax highlighting
+- Error indicators
+- Auto-completion (coming soon)
+
+**Supported Query Types:**
+- `SELECT` - With JOINs, subqueries, CTEs, and UNIONs
+- `INSERT` - Track which columns receive data
+- `UPDATE` - Visualize which columns are modified
+- `DELETE` - See which tables and filters are involved
+
+### 2. Parse and View Diagram
+
+Click **Parse Query** or press `Ctrl/Cmd + Enter` to generate the diagram.
+
+**In the diagram:**
+- **Nodes** represent tables referenced in your query
+- **Edges** show JOIN relationships between tables
+- **Column colors** indicate usage:
+  - **Blue**: Selected columns (in SELECT clause)
+  - **Green**: Join columns (used in ON conditions)
+  - **Orange**: Filter columns (used in WHERE/HAVING)
+  - **Purple**: Modified columns (INSERT/UPDATE targets)
+
+### 3. AI Explanations (Optional)
+
+Toggle the **AI Explanation** panel to get:
+- **Summary**: One-sentence overview of what the query does
+- **Step-by-step breakdown**: How the query executes logically
+- **Join explanations**: Plain-English description of each relationship
+- **Potential issues**: Warnings about performance or correctness
+
+> **Note**: AI features require an OpenAI API key.
+
+### 4. Schema Validation (Optional)
+
+Upload your database schema (CREATE TABLE statements) to:
+- Validate column references exist
+- Show data types in the diagram
+- Highlight invalid column references in red
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl/Cmd + Enter` | Parse query |
+| `Ctrl/Cmd + Shift + F` | Format SQL |
+| `Ctrl/Cmd + L` | Clear editor |
+| `Ctrl/Cmd + /` | Toggle comment |
+| `Escape` | Close panels |
+
+---
+
+## Tech Stack
+
+| Technology | Purpose |
+|------------|---------|
+| [Next.js 16](https://nextjs.org/) | React framework with App Router |
+| [React Flow](https://reactflow.dev/) | Interactive diagram rendering |
+| [pgsql-ast-parser](https://github.com/oguimbal/pgsql-ast-parser) | PostgreSQL SQL parsing |
+| [OpenAI GPT-4](https://openai.com/) | AI-powered query explanations |
+| [Monaco Editor](https://microsoft.github.io/monaco-editor/) | Code editor (VS Code's editor) |
+| [Tailwind CSS](https://tailwindcss.com/) | Utility-first styling |
+| [shadcn/ui](https://ui.shadcn.com/) | Accessible UI components |
+| [Zustand](https://zustand-demo.pmnd.rs/) | Lightweight state management |
+| [Vitest](https://vitest.dev/) | Fast unit testing |
+
+---
+
+## Development
+
+### Commands
+
+```bash
+# Start development server with hot reload
+npm run dev
+
+# Run tests
+npm run test          # Watch mode
+npm run test:run      # Single run
+npm run test:coverage # With coverage report
+
+# Type checking
+npm run typecheck
+
+# Linting and formatting
+npm run lint          # Check for issues
+npm run lint:fix      # Auto-fix issues
+npm run format        # Format with Prettier
+npm run format:check  # Check formatting
+
+# Production build
+npm run build
+npm run start
+```
+
+### Test Status
+
+```
+193 tests passing | 11 skipped (known limitations)
+```
+
+---
+
+## Environment Variables
+
+Create a `.env.local` file in the project root:
+
+```bash
+# Required for AI features (optional if not using AI)
+OPENAI_API_KEY=sk-your-api-key-here
+
+# Optional: Customize AI model
+OPENAI_MODEL=gpt-4-turbo-preview
+OPENAI_MAX_TOKENS=1000
+```
+
+**Get your OpenAI API key:** [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+
+> **Privacy Note**: Your SQL queries are only sent to OpenAI if you explicitly enable AI explanations. All parsing happens client-side.
+
+---
+
+## Architecture
+
+QueryLens follows a clean architecture with clear separation of concerns:
+
+```
+User Input (SQL)
+    |
+    v
+Monaco Editor --> pgsql-ast-parser --> Parsed Query Structure
+    |
+    v
+Diagram Generator --> React Flow Nodes/Edges
+    |
+    v
+(Optional) OpenAI API --> AI Explanation
+```
+
+### Project Structure
+
+```
+querylens/
+|-- app/                    # Next.js App Router
+|   |-- api/               # API routes
+|   |   |-- parse/         # SQL parsing endpoint
+|   |   +-- explain/       # AI explanation endpoint
+|   |-- layout.tsx         # Root layout
+|   +-- page.tsx           # Main page
+|-- components/
+|   |-- ui/                # shadcn/ui components
+|   |-- query-diagram/     # React Flow diagram components
+|   |-- sql-editor/        # Monaco editor wrapper
+|   +-- ai-explanation/    # AI panel components
+|-- lib/
+|   |-- sql-parser/        # SQL parsing logic
+|   |-- schema-parser/     # DDL schema parsing
+|   |-- diagram/           # Diagram generation
+|   +-- ai/                # OpenAI integration
+|-- types/                 # TypeScript definitions
+|-- hooks/                 # Custom React hooks
+|-- tests/                 # Test suites
++-- docs/                  # Documentation
+```
+
+**Key Design Decisions:**
+
+1. **Client-side parsing**: SQL is parsed in the browser using pgsql-ast-parser, avoiding network round-trips for basic visualization.
+
+2. **React Flow for diagrams**: Provides native React components with built-in pan, zoom, and selection.
+
+3. **Optional AI**: AI features are toggle-able and disabled by default to reduce costs and improve privacy.
+
+4. **Zustand for state**: Minimal boilerplate state management that works seamlessly with React Server Components.
+
+See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for detailed technical documentation.
+
+---
+
+## Limitations
+
+The SQL parser (pgsql-ast-parser) has some known limitations:
+
+### Unsupported Features
+
+| Feature | Status |
+|---------|--------|
+| `ROWS BETWEEN ... AND ...` frame clause | Not supported |
+| `RANGE BETWEEN ... AND ...` frame clause | Not supported |
+| `GROUPS` frame type | Not supported |
+| `EXCLUDE` clause in window frames | Not supported |
+| `SIMILAR TO` operator | Not supported |
+| Some `LATERAL` join syntax | Partial support |
+| `WITH RECURSIVE` (recursive CTEs) | Not supported |
+| `INTERSECT` set operation | Not supported |
+| `EXCEPT` set operation | Not supported |
+| JSON path operators (`#>`, `#>>`) | Not supported |
+| `GROUPING SETS` in GROUP BY | Not supported |
+
+### What Works Well
+
+- Standard `SELECT`, `INSERT`, `UPDATE`, `DELETE`
+- All JOIN types (`INNER`, `LEFT`, `RIGHT`, `FULL`, `CROSS`)
+- CTEs (`WITH` clauses, non-recursive)
+- Subqueries in FROM and WHERE
+- `UNION` and `UNION ALL`
+- Window functions (basic syntax)
+- Aggregate functions
+- CASE expressions
+- Type casts
+
+---
 
 ## Example Queries
 
@@ -116,100 +298,63 @@ LEFT JOIN categories c ON p.category_id = c.id
 WHERE p.active = true;
 ```
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| **Framework** | Next.js 16 (App Router) |
-| **Language** | TypeScript |
-| **Styling** | Tailwind CSS + shadcn/ui |
-| **Diagrams** | React Flow |
-| **SQL Parsing** | pgsql-ast-parser |
-| **AI** | OpenAI GPT-4 |
-| **State** | Zustand |
-| **Testing** | Vitest + Testing Library |
-
-## Project Structure
-
-```
-querylens/
-├── app/                    # Next.js App Router pages
-│   ├── api/               # API routes
-│   │   ├── parse/        # SQL parsing endpoint
-│   │   └── explain/      # AI explanation endpoint
-│   ├── layout.tsx        # Root layout
-│   └── page.tsx          # Home page
-├── components/
-│   ├── ui/               # shadcn/ui components
-│   ├── query-diagram/    # React Flow diagram components
-│   ├── sql-editor/       # Monaco editor wrapper
-│   └── ai-explanation/   # AI explanation panel
-├── lib/
-│   ├── sql-parser/       # SQL parsing logic
-│   └── ai/               # OpenAI integration
-├── types/                 # TypeScript definitions
-├── hooks/                 # Custom React hooks
-└── tests/                 # Test files
-```
-
-## Development
-
-```bash
-# Start dev server
-npm run dev
-
-# Run tests
-npm test
-
-# Type checking
-npm run typecheck
-
-# Linting
-npm run lint
-
-# Format code
-npm run format
-```
-
-## Roadmap
-
-### MVP (Current)
-- [x] Project setup
-- [ ] SQL parsing for basic queries
-- [ ] React Flow diagram generation
-- [ ] Column role detection and highlighting
-- [ ] Monaco editor with syntax highlighting
-- [ ] AI explanation integration
-
-### Future
-- [ ] MySQL and SQLite support
-- [ ] Share queries via URL
-- [ ] Query comparison (diff two queries)
-- [ ] VS Code extension
-- [ ] Schema upload for validation
+---
 
 ## Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Please follow these guidelines:
 
-## Why I Built This
+### Getting Started
 
-I kept inheriting databases with undocumented queries. Reading complex SQL is hard - visualizing the data flow is easy. QueryLens bridges the gap between "reading SQL" and "understanding what it does."
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Make your changes
+4. Write/update tests
+5. Run the test suite: `npm run test:run`
+6. Ensure linting passes: `npm run lint`
+7. Commit your changes: `git commit -m 'Add your feature'`
+8. Push to your fork: `git push origin feature/your-feature`
+9. Open a Pull Request
 
-The hardest part was building a robust parser for PostgreSQL's full syntax while keeping the UI responsive. I ended up using pgsql-ast-parser for AST generation and React Flow for visualization.
+### Code Guidelines
+
+- Write tests for new features (aim for >80% coverage)
+- Follow existing code style (enforced by ESLint/Prettier)
+- Use TypeScript types for all new code
+- Add JSDoc comments for public functions
+- Keep commits focused and atomic
+
+### Reporting Issues
+
+When reporting bugs, please include:
+- SQL query that caused the issue
+- Expected behavior
+- Actual behavior
+- Browser and OS information
+
+---
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
 
 ## Acknowledgments
 
-- [React Flow](https://reactflow.dev/) for the excellent diagram library
-- [pgsql-ast-parser](https://github.com/oguimbal/pgsql-ast-parser) for PostgreSQL parsing
-- [shadcn/ui](https://ui.shadcn.com/) for beautiful UI components
+Built with these excellent open-source projects:
+
+- [pgsql-ast-parser](https://github.com/oguimbal/pgsql-ast-parser) - PostgreSQL AST parser by Olivier Guimbal
+- [React Flow](https://reactflow.dev/) - Interactive diagram library by xyflow
+- [Monaco Editor](https://github.com/microsoft/monaco-editor) - Code editor by Microsoft
+- [shadcn/ui](https://ui.shadcn.com/) - Beautiful UI components by shadcn
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Next.js](https://nextjs.org/) - React framework by Vercel
+- [Zustand](https://github.com/pmndrs/zustand) - Lightweight state management
+- [Vitest](https://vitest.dev/) - Fast unit testing framework
 
 ---
 
 <p align="center">
-  Made with coffee by <a href="https://github.com/zach-fau">Zach</a>
+  Made with care for developers who inherit undocumented databases.
 </p>

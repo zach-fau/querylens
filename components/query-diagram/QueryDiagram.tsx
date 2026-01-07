@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useSyncExternalStore } from 'react';
 import {
   ReactFlow,
   Background,
@@ -33,6 +34,21 @@ const nodeTypes = {
 const edgeTypes = {
   join: JoinEdge,
 };
+
+// Dark mode detection using useSyncExternalStore
+function subscribeToDarkMode(callback: () => void): () => void {
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  mediaQuery.addEventListener('change', callback);
+  return () => mediaQuery.removeEventListener('change', callback);
+}
+
+function getServerSnapshot(): boolean {
+  return false;
+}
+
+function getClientSnapshot(): boolean {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
 
 /**
  * Simple auto-layout algorithm using hierarchical positioning
@@ -214,6 +230,12 @@ function getColumnsForTable(
 }
 
 export function QueryDiagram({ parsedQuery, className }: QueryDiagramProps) {
+  const isDarkMode = useSyncExternalStore(
+    subscribeToDarkMode,
+    getClientSnapshot,
+    getServerSnapshot
+  );
+
   const { nodes, edges } = React.useMemo(() => {
     if (!parsedQuery) {
       return { nodes: [], edges: [] };
@@ -223,10 +245,10 @@ export function QueryDiagram({ parsedQuery, className }: QueryDiagramProps) {
 
   if (!parsedQuery) {
     return (
-      <div className="flex h-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
+      <div className="flex h-full items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
         <div className="text-center">
           <svg
-            className="mx-auto h-12 w-12 text-gray-400"
+            className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -238,7 +260,7 @@ export function QueryDiagram({ parsedQuery, className }: QueryDiagramProps) {
               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
             />
           </svg>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
             Paste SQL query to see diagram
           </p>
         </div>
@@ -248,10 +270,10 @@ export function QueryDiagram({ parsedQuery, className }: QueryDiagramProps) {
 
   if (nodes.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
+      <div className="flex h-full items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
         <div className="text-center">
           <svg
-            className="mx-auto h-12 w-12 text-gray-400"
+            className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -263,7 +285,7 @@ export function QueryDiagram({ parsedQuery, className }: QueryDiagramProps) {
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
             No tables found in query
           </p>
         </div>
@@ -284,14 +306,21 @@ export function QueryDiagram({ parsedQuery, className }: QueryDiagramProps) {
         defaultEdgeOptions={{
           animated: true,
         }}
+        className={isDarkMode ? 'dark' : ''}
       >
-        <Background color="#e5e7eb" gap={16} />
-        <Controls />
+        <Background
+          color={isDarkMode ? '#334155' : '#e5e7eb'}
+          gap={16}
+        />
+        <Controls
+          className="!bg-white !border-slate-200 dark:!bg-slate-800 dark:!border-slate-600 [&>button]:!bg-white [&>button]:!border-slate-200 [&>button]:!text-slate-600 dark:[&>button]:!bg-slate-800 dark:[&>button]:!border-slate-600 dark:[&>button]:!text-slate-300 [&>button]:hover:!bg-slate-50 dark:[&>button]:hover:!bg-slate-700"
+        />
         <MiniMap
           nodeColor={() => {
-            return '#f3f4f6';
+            return isDarkMode ? '#475569' : '#f3f4f6';
           }}
-          maskColor="rgba(0, 0, 0, 0.1)"
+          maskColor={isDarkMode ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.1)'}
+          className="!bg-slate-100 dark:!bg-slate-800 !border-slate-200 dark:!border-slate-600"
         />
       </ReactFlow>
     </div>
