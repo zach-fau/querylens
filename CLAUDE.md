@@ -22,24 +22,26 @@ QueryLens is a **visual SQL query path analyzer** with AI explanations. Users pa
 |----------|----------|
 | **PRD** | `../career-planning/.claude/pm/prds/querylens.md` |
 | **Architecture** | `docs/ARCHITECTURE.md` |
-| **Task List** | `TODO.md` (local) + GitHub Issues (source of truth) |
+| **Tasks** | GitHub Issues (source of truth) |
 | **Research** | `../career-planning/.claude/research/final-recommendations-2026-01-07.md` |
 
-## How to Track Progress
+## Current State
 
-**Use GitHub Issues as the source of truth:**
+**Lint**: ❌ (19 errors) | **TypeScript**: ✅ | **Tests**: ✅ (39 passing)
 
+### What's Next
+
+**Check GitHub Issues** for current tasks:
+```bash
+gh issue list --repo zach-fau/querylens
+```
+
+Current issues:
 - [Issue #1](https://github.com/zach-fau/querylens/issues/1) - Week 1: SQL Parser Foundation
 - [Issue #2](https://github.com/zach-fau/querylens/issues/2) - Week 2: Column Highlighting & Editor
 - [Issue #3](https://github.com/zach-fau/querylens/issues/3) - Week 3: AI Integration & Polish
 
-**Workflow:**
-1. Check current GitHub issues for what's in progress
-2. Work on tasks from the relevant week's issue
-3. Check off completed items in the issue
-4. Commit frequently with descriptive messages
-
-**Do NOT use**: CCPM /pm commands (outdated). Keep it simple with GitHub issues.
+If no open issues, reference `../career-planning/.claude/pm/prds/querylens.md` for what to work on next.
 
 ## Development Commands
 
@@ -84,22 +86,6 @@ querylens/
 | `components/query-diagram/` | React Flow diagram (to be built) |
 | `app/api/parse/route.ts` | Parse SQL endpoint (to be built) |
 | `app/api/explain/route.ts` | AI explanation endpoint (to be built) |
-
-## Current Status
-
-**Week**: 1 of 3
-**Phase**: Foundation - SQL Parser + Basic Diagram
-
-**Completed:**
-- [x] Project setup (Next.js, React Flow, dependencies)
-- [x] Type definitions
-- [x] Basic SQL parser wrapper
-- [x] Documentation
-
-**In Progress:**
-- [ ] SQL parser for SELECT queries
-- [ ] TableNode component
-- [ ] Basic diagram generation
 
 ## MVP Features (Keep Focused!)
 

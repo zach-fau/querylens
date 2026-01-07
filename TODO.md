@@ -1,4 +1,14 @@
-# QueryLens TODO
+# ⚠️ DEPRECATED - Use GitHub Issues Instead
+
+**This file is no longer maintained.**
+
+✅ **For current tasks**: Check [GitHub Issues](https://github.com/zach-fau/querylens/issues)
+
+This file is kept for reference only and may be out of sync with actual project status.
+
+---
+
+# QueryLens TODO (Archive)
 
 Technical tasks and features for QueryLens development.
 
