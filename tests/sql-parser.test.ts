@@ -479,6 +479,193 @@ describe('SQL Parser', () => {
     });
   });
 
+  describe('UNION Queries', () => {
+    it('should parse simple UNION query', () => {
+      const sql = `
+        SELECT id, name FROM users
+        UNION
+        SELECT id, name FROM admins
+      `;
+      const result = parseSQL(sql);
+
+      expect(result.type).toBe('SELECT');
+      // Should extract tables from both sides of UNION
+      const tableNames = result.tables.map(t => t.name);
+      expect(tableNames).toContain('users');
+      expect(tableNames).toContain('admins');
+    });
+
+    it('should parse UNION ALL query', () => {
+      const sql = `
+        SELECT id, email FROM active_users
+        UNION ALL
+        SELECT id, email FROM archived_users
+      `;
+      const result = parseSQL(sql);
+
+      expect(result.type).toBe('SELECT');
+      // Should extract tables from both sides of UNION ALL
+      const tableNames = result.tables.map(t => t.name);
+      expect(tableNames).toContain('active_users');
+      expect(tableNames).toContain('archived_users');
+    });
+
+    it('should parse multiple UNION queries', () => {
+      const sql = `
+        SELECT id, name FROM customers
+        UNION
+        SELECT id, name FROM vendors
+        UNION
+        SELECT id, name FROM partners
+      `;
+      const result = parseSQL(sql);
+
+      expect(result.type).toBe('SELECT');
+      // Should extract tables from all parts of UNION
+      const tableNames = result.tables.map(t => t.name);
+      expect(tableNames).toContain('customers');
+      expect(tableNames).toContain('vendors');
+      expect(tableNames).toContain('partners');
+    });
+
+    it('should parse UNION with WHERE clauses', () => {
+      const sql = `
+        SELECT id, name FROM users WHERE status = 'active'
+        UNION
+        SELECT id, name FROM admins WHERE role = 'super'
+      `;
+      const result = parseSQL(sql);
+
+      expect(result.type).toBe('SELECT');
+      // Should have filter columns from both sides
+      const filterCols = result.columns.filter(c => c.isFilterColumn);
+      const filterColNames = filterCols.map(c => c.name);
+      expect(filterColNames).toContain('status');
+      expect(filterColNames).toContain('role');
+    });
+  });
+
+  describe('Window Functions', () => {
+    it('should parse window function with ROW_NUMBER', () => {
+      const sql = `
+        SELECT
+          id,
+          name,
+          ROW_NUMBER() OVER (ORDER BY created_at) AS row_num
+        FROM users
+      `;
+      const result = parseSQL(sql);
+
+      expect(result.type).toBe('SELECT');
+      expect(result.tables).toHaveLength(1);
+      expect(result.tables[0].name).toBe('users');
+
+      // Should recognize selected columns
+      const selectedCols = result.columns.filter(c => c.isSelected);
+      const selectedNames = selectedCols.map(c => c.name);
+      expect(selectedNames).toContain('id');
+      expect(selectedNames).toContain('name');
+    });
+
+    it('should parse window function with PARTITION BY', () => {
+      const sql = `
+        SELECT
+          department,
+          employee_name,
+          salary,
+          RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS dept_rank
+        FROM employees
+      `;
+      const result = parseSQL(sql);
+
+      expect(result.type).toBe('SELECT');
+      expect(result.tables[0].name).toBe('employees');
+
+      // Should extract columns used in window function
+      const selectedCols = result.columns.filter(c => c.isSelected);
+      const selectedNames = selectedCols.map(c => c.name);
+      expect(selectedNames).toContain('department');
+      expect(selectedNames).toContain('employee_name');
+      expect(selectedNames).toContain('salary');
+    });
+
+    it('should parse SUM window function', () => {
+      const sql = `
+        SELECT
+          order_id,
+          amount,
+          SUM(amount) OVER (ORDER BY order_date) AS running_total
+        FROM orders
+      `;
+      const result = parseSQL(sql);
+
+      expect(result.type).toBe('SELECT');
+      expect(result.tables[0].name).toBe('orders');
+    });
+
+    // Note: pgsql-ast-parser doesn't support ROWS BETWEEN ... AND ... frame clauses
+    // This is a known limitation of the library
+    it.skip('should parse window function with frame clause', () => {
+      const sql = `
+        SELECT
+          date,
+          value,
+          AVG(value) OVER (
+            ORDER BY date
+            ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+          ) AS moving_avg
+        FROM metrics
+      `;
+      const result = parseSQL(sql);
+
+      expect(result.type).toBe('SELECT');
+      expect(result.tables[0].name).toBe('metrics');
+    });
+
+    it('should parse multiple window functions', () => {
+      const sql = `
+        SELECT
+          id,
+          name,
+          score,
+          RANK() OVER (ORDER BY score DESC) AS rank,
+          DENSE_RANK() OVER (ORDER BY score DESC) AS dense_rank,
+          NTILE(4) OVER (ORDER BY score DESC) AS quartile
+        FROM students
+      `;
+      const result = parseSQL(sql);
+
+      expect(result.type).toBe('SELECT');
+      expect(result.tables[0].name).toBe('students');
+
+      const selectedCols = result.columns.filter(c => c.isSelected);
+      const selectedNames = selectedCols.map(c => c.name);
+      expect(selectedNames).toContain('id');
+      expect(selectedNames).toContain('name');
+      expect(selectedNames).toContain('score');
+    });
+
+    it('should parse LAG/LEAD window functions', () => {
+      const sql = `
+        SELECT
+          order_date,
+          amount,
+          LAG(amount, 1) OVER (ORDER BY order_date) AS prev_amount,
+          LEAD(amount, 1) OVER (ORDER BY order_date) AS next_amount
+        FROM orders
+      `;
+      const result = parseSQL(sql);
+
+      expect(result.type).toBe('SELECT');
+      expect(result.tables[0].name).toBe('orders');
+
+      const selectedCols = result.columns.filter(c => c.isSelected);
+      const selectedNames = selectedCols.map(c => c.name);
+      expect(selectedNames).toContain('order_date');
+      expect(selectedNames).toContain('amount');
+    });
+  });
+
   describe('Real-World Queries', () => {
     it('should parse e-commerce order query', () => {
       const sql = `
